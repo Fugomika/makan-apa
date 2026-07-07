@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mau Makan Apa?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --lime:        #C8FF00;
+      --dark:        #111111;
+      --mid:         #666666;
+      --muted:       #999999;
+      --white:       #FFFFFF;
+      --radius-card: 28px;
+      --radius-pill: 100px;
+      --shadow:      0 8px 32px rgba(0,0,0,.10);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Nunito', sans-serif;
+      background: var(--lime);
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    /* ── doodle bg ── */
+    .doodles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .dk { position: absolute; color: var(--dark); opacity: .12; font-weight: 900; line-height: 1; user-select: none; }
+    .dk-a { font-size: 40px; top:  3%; left:  5%; animation: wiggle 5s ease-in-out infinite; }
+    .dk-b { font-size: 20px; top:  7%; right: 9%; animation: bob 3s ease-in-out infinite alternate; }
+    .dk-c { font-size: 32px; top: 26%; right: 4%; animation: wiggle 7s ease-in-out infinite reverse; }
+    .dk-d { font-size: 44px; top: 48%; left:  3%; animation: bob 4s ease-in-out infinite alternate; }
+    .dk-e { font-size: 22px; top: 52%; right: 6%; animation: wiggle 4.5s ease-in-out infinite; }
+    .dk-f { font-size: 34px; bottom: 20%; left:  7%; animation: bob 3.5s ease-in-out infinite alternate; }
+    .dk-g { font-size: 26px; bottom: 7%;  right: 9%; animation: wiggle 6s ease-in-out infinite; }
+    .dk-h { font-size: 18px; bottom: 38%; left: 14%; animation: bob 2.5s ease-in-out infinite alternate; }
+    @keyframes wiggle { 0%,100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+    @keyframes bob    { from { transform: translateY(0) scale(1); } to { transform: translateY(-9px) scale(1.1); } }
+
+    /* ── app shell ── */
+    .app {
+      position: relative; z-index: 1;
+      max-width: 430px; margin: 0 auto;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 20px 40px;
+    }
+
+    /* ── screens ── */
+    .screen { width: 100%; display: none; flex-direction: column; align-items: center; gap: 14px; }
+    .screen.active { display: flex; animation: screenIn .38s cubic-bezier(.34,1.5,.64,1); }
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(22px) scale(.96); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);   }
+    }
+
+    /* ── white card ── */
+    .card { width: 100%; background: var(--white); border-radius: var(--radius-card); box-shadow: var(--shadow); }
+
+    /* ══════════════════════════════
+       INTRO
+    ══════════════════════════════ */
+    .auth-bar {
+      width: 100%; display: flex;
+      justify-content: space-between; align-items: center; min-height: 36px;
+    }
+    .auth-right { display: flex; gap: 8px; align-items: center; }
+    .btn-sm {
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12px;
+      padding: 8px 14px; border-radius: var(--radius-pill);
+      border: 2px solid rgba(0,0,0,.12); background: rgba(255,255,255,.55);
+      color: var(--dark); cursor: pointer; transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-sm:hover { background: rgba(255,255,255,.8); }
+
+    .hero-card {
+      padding: 30px 24px 26px;
+      display: flex; flex-direction: column; align-items: center; gap: 22px;
+    }
+    .hero-img-wrap { position: relative; width: 170px; height: 170px; }
+    .hero-img {
+      width: 100%; height: 100%; border-radius: 22px;
+      background: linear-gradient(135deg, #FFF8D6 0%, #FFE6E6 45%, #E6EFFF 100%);
+      display: flex; align-items: center; justify-content: center; font-size: 86px;
+      animation: heroRock 2.8s ease-in-out infinite alternate;
+      box-shadow: 0 6px 24px rgba(0,0,0,.08);
+    }
+    @keyframes heroRock { from { transform: rotate(-4deg) scale(1); } to { transform: rotate(4deg) scale(1.04); } }
+    .hero-badge {
+      position: absolute; top: -10px; right: -10px;
+      background: var(--lime); border-radius: 50%;
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.12);
+      animation: badgePulse 2s ease-in-out infinite alternate;
+    }
+    @keyframes badgePulse { from { transform: scale(1) rotate(-10deg); } to { transform: scale(1.15) rotate(10deg); } }
+
+    .hero-copy { width: 100%; }
+    .headline { font-size: 30px; font-weight: 900; line-height: 1.22; color: var(--dark); }
+    .hl { background: linear-gradient(transparent 54%, #FFE400 54%); padding: 0 3px; border-radius: 3px; }
+    .sub { margin-top: 10px; font-size: 14px; color: var(--mid); font-weight: 600; line-height: 1.5; }
+
+    /* ══════════════════════════════
+       BUTTONS
+    ══════════════════════════════ */
+    .btn {
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
+      border: none; cursor: pointer; padding: 17px 24px;
+      border-radius: var(--radius-pill); width: 100%; line-height: 1;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover  { transform: translateY(-3px); }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: .6; pointer-events: none; }
+
+    .btn-dark {
+      background: var(--dark); color: var(--white); font-size: 17px;
+      box-shadow: 0 6px 22px rgba(0,0,0,.22);
+    }
+    .btn-dark:hover { box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,.44); color: var(--dark);
+      border: 2px solid rgba(0,0,0,.1); box-shadow: none;
+      font-size: 14px; font-weight: 700; padding: 12px;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,.65); transform: none; }
+    .btn-ghost:active { transform: none; }
+
+    /* ══════════════════════════════
+       STEP HEADER
+    ══════════════════════════════ */
+    .step-top { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .back-link {
+      font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px;
+      color: rgba(0,0,0,.5); background: none; border: none; cursor: pointer;
+      padding: 4px 0; display: flex; align-items: center; gap: 4px; transition: color .15s;
+    }
+    .back-link:hover { color: var(--dark); }
+
+    .dots { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.18); transition: all .3s ease; }
+    .dot.on   { width: 26px; border-radius: 8px; background: var(--dark); }
+    .dot.done { background: var(--dark); opacity: .4; }
+
+    .step-badge {
+      background: rgba(0,0,0,.1); color: var(--dark);
+      font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 100px;
+    }
+
+    .q-card { padding: 26px 24px 22px; }
+    .q-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .q-text  { font-size: 25px; font-weight: 900; color: var(--dark); line-height: 1.3; }
+    .q-hint  { font-size: 13px; color: var(--mid); font-weight: 600; margin-top: 10px; }
+
+    /* ══════════════════════════════
+       CHOICE CARDS
+    ══════════════════════════════ */
+    .cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+    .cc {
+      background: var(--white); border-radius: 20px; overflow: hidden;
+      cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,.09);
+      display: flex; flex-direction: column;
+      transition: transform .22s cubic-bezier(.34,1.5,.64,1), box-shadow .22s;
+    }
+    .cc:hover  { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 32px rgba(0,0,0,.14); }
+    .cc:active { transform: translateY(1px) scale(.99); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+
+    .cc-img { height: 106px; display: flex; align-items: center; justify-content: center; font-size: 52px; flex-shrink: 0; }
+    .cc-label { padding: 11px 10px 15px; font-size: 13px; font-weight: 800; color: var(--dark); text-align: center; line-height: 1.4; }
+
+    .p-yellow  { background: linear-gradient(150deg,#FFF6C0,#FFE680); }
+    .p-violet  { background: linear-gradient(150deg,#EDD6FF,#D4AAFF); }
+    .p-sky     { background: linear-gradient(150deg,#C8EDFF,#96D8FF); }
+    .p-peach   { background: linear-gradient(150deg,#FFE6C8,#FFD0A0); }
+    .p-mint    { background: linear-gradient(150deg,#C8FFE6,#9AFFD2); }
+    .p-lavender{ background: linear-gradient(150deg,#E6CCFF,#CB99FF); }
+    .p-rose    { background: linear-gradient(150deg,#FFD6E5,#FFB0CA); }
+    .p-sage    { background: linear-gradient(150deg,#D6FFD6,#AAFFAA); }
+    .p-honey   { background: linear-gradient(150deg,#FFF0C0,#FFD966); }
+    .p-salt    { background: linear-gradient(150deg,#D6EEFF,#A8D4F5); }
+
+    /* ══════════════════════════════
+       RESULT
+    ══════════════════════════════ */
+    .result-card { overflow: hidden; }
+
+    .result-top {
+      height: 220px;
+      background: linear-gradient(135deg,#FFF8CC 0%,#FFD9EC 35%,#CCE8FF 70%,#CCFFEE 100%);
+      display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    .result-emoji {
+      font-size: 108px; display: block;
+      animation: resFloat 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes resFloat { from { transform: scale(1) rotate(-5deg); } to { transform: scale(1.07) rotate(5deg); } }
+    .result-chip {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(255,255,255,.88); border-radius: 100px;
+      font-size: 11px; font-weight: 800; color: var(--dark);
+      padding: 5px 13px; backdrop-filter: blur(6px);
+    }
+
+    .result-body { padding: 22px 22px 24px; }
+    .result-id   { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+    .result-name { font-size: 22px; font-weight: 900; color: var(--dark); line-height: 1.2; margin-bottom: 8px; }
+    .result-desc { font-size: 13px; color: var(--mid); line-height: 1.65; margin-bottom: 18px; }
+
+    /* 2×2 stat grid */
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+    .stat-box { background: #F4F4F4; border-radius: 14px; padding: 12px 8px; text-align: center; }
+    .stat-val { font-size: 11px; font-weight: 900; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat-key { font-size: 9px; color: var(--muted); font-weight: 700; margin-top: 3px; }
+
+    .result-actions { display: flex; flex-direction: column; gap: 10px; }
+
+    .dice-btn {
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
+      background: var(--lime); color: var(--dark); border: none; cursor: pointer;
+      border-radius: var(--radius-pill); padding: 17px; width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 6px 22px rgba(150,210,0,.38);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .dice-btn:hover  { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(150,210,0,.48); }
+    .dice-btn:active { transform: translateY(1px); }
+
+    .di { font-size: 22px; display: inline-block; }
+    .di.roll { animation: diRoll .48s cubic-bezier(.36,.07,.19,.97); }
+    @keyframes diRoll {
+      0%   { transform: rotate(0) scale(1); }
+      28%  { transform: rotate(130deg) scale(1.5); }
+      62%  { transform: rotate(250deg) scale(.6); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    .heart-btn {
+      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px;
+      background: #FFF0F5; color: #FF3B7A;
+      border: 2px solid #FFB3CF; border-radius: var(--radius-pill);
+      padding: 14px; width: 100%; cursor: pointer;
+      transition: transform .15s, background .15s;
+    }
+    .heart-btn:hover  { background: #FFD6E8; transform: translateY(-2px); }
+    .heart-btn:active { transform: translateY(1px); }
+    .heart-btn:disabled { opacity: .6; pointer-events: none; }
+
+    /* ══════════════════════════════
+       AUTH SCREEN
+    ══════════════════════════════ */
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .auth-tab {
+      flex: 1; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px;
+      padding: 13px; border-radius: 14px; border: none; cursor: pointer;
+      background: #F4F4F4; color: var(--mid); transition: all .2s;
+    }
+    .auth-tab.active { background: var(--dark); color: var(--white); }
+
+    .auth-input {
+      width: 100%; padding: 14px 16px;
+      border: 2px solid #EBEBEB; border-radius: 14px;
+      font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700;
+      margin-bottom: 12px; outline: none; display: block;
+      transition: border-color .2s;
+    }
+    .auth-input:focus { border-color: var(--dark); }
+
+    .auth-error {
+      color: #FF4444; font-size: 13px; font-weight: 700;
+      margin-bottom: 12px; display: none; line-height: 1.4;
+    }
+
+    /* ══════════════════════════════
+       FAVORITES SCREEN
+    ══════════════════════════════ */
+    .fav-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .fav-card {
+      width: 100%; background: var(--white); border-radius: 20px;
+      padding: 16px 18px; display: flex; align-items: center; gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .fav-emoji { font-size: 38px; flex-shrink: 0; }
+    .fav-info  { flex: 1; min-width: 0; }
+    .fav-name  { font-size: 15px; font-weight: 900; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fav-desc  { font-size: 12px; font-weight: 600; color: var(--mid); margin-top: 2px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .fav-cat   { font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+    .fav-empty { text-align: center; color: var(--mid); font-weight: 700; font-size: 14px; padding: 32px 0; line-height: 2; }
+
+    /* ══════════════════════════════
+       TOAST
+    ══════════════════════════════ */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: var(--dark); color: var(--white);
+      padding: 12px 24px; border-radius: 100px;
+      font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700;
+      opacity: 0; pointer-events: none; transition: opacity .3s;
+      z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── confetti ── */
+    .conf {
+      position: fixed; pointer-events: none; z-index: 9998;
+      border-radius: 2px; animation: cFall linear forwards;
+    }
+    @keyframes cFall {
+      from { opacity: 1; transform: translateY(-20px) rotate(0) scaleX(1); }
+      to   { opacity: 0; transform: translateY(110vh)  rotate(680deg) scaleX(.5); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="doodles" aria-hidden="true">
+  <span class="dk dk-a">✦</span><span class="dk dk-b">+</span>
+  <span class="dk dk-c">✧</span><span class="dk dk-d">♥</span>
+  <span class="dk dk-e">★</span><span class="dk dk-f">✦</span>
+  <span class="dk dk-g">+</span><span class="dk dk-h">✧</span>
+</div>
+
+<div class="app">
+
+  <!-- ════════════════ INTRO ════════════════ -->
+  <div class="screen active" id="s-intro">
+    <div class="auth-bar">
+      <div id="fav-bar" style="display:none">
+        <button class="btn-sm" onclick="showFavoritesScreen()">❤️ Favorit</button>
+      </div>
+      <div class="auth-right">
+        <span id="auth-label" style="font-size:12px;font-weight:700;color:rgba(0,0,0,.45);display:none"></span>
+        <button id="btn-signin"  class="btn-sm" onclick="go('s-auth')">Masuk</button>
+        <button id="btn-signout" class="btn-sm" style="display:none" onclick="logout()">Keluar</button>
+      </div>
+    </div>
+
+    <div class="card hero-card">
+      <div class="hero-img-wrap">
+        <div class="hero-img">🍽️</div>
+        <div class="hero-badge">✨</div>
+      </div>
+      <div class="hero-copy">
+        <h1 class="headline">Mau makan<br><span class="hl">apa</span> hari ini?</h1>
+        <p class="sub">"nggak ada kata <strong>terserah</strong>"</p>
+      </div>
+    </div>
+    <button class="btn btn-dark" onclick="go('s1')">Mulai Pilih &nbsp;→</button>
+  </div>
+
+  <!-- ════════════════ STEP 1 · NASI / NON NASI ════════════════ -->
+  <div class="screen" id="s1">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s-intro')">← Kembali</button>
+      <div class="dots">
+        <div class="dot on"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+      <span class="step-badge">1 / 4</span>
+    </div>
+    <div class="card q-card">
+      <p class="q-label">Pertanyaan 1</p>
+      <p class="q-text">Pengen makan<br>nasi nggak?</p>
+    </div>
+    <div class="cgrid">
+      <div class="cc" onclick="pick('base','nasi','s2')">
+        <div class="cc-img p-yellow">🍚</div>
+        <div class="cc-label">Nasi</div>
+      </div>
+      <div class="cc" onclick="pick('base','non-nasi','s2')">
+        <div class="cc-img p-violet">🍜</div>
+        <div class="cc-label">Non Nasi</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ STEP 2 · BERKUAH / NON KUAH ════════════════ -->
+  <div class="screen" id="s2">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s1')">← Kembali</button>
+      <div class="dots">
+        <div class="dot done"></div><div class="dot on"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+      <span class="step-badge">2 / 4</span>
+    </div>
+    <div class="card q-card">
+      <p class="q-label">Pertanyaan 2</p>
+      <p class="q-text">Mau yang ada<br>kuahnya?</p>
+    </div>
+    <div class="cgrid">
+      <div class="cc" onclick="pick('kuah','berkuah','s3')">
+        <div class="cc-img p-sky">🥣</div>
+        <div class="cc-label">Berkuah</div>
+      </div>
+      <div class="cc" onclick="pick('kuah','non-kuah','s3')">
+        <div class="cc-img p-peach">🍳</div>
+        <div class="cc-label">Non Kuah</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ STEP 3 · LANJUT / RANDOM ════════════════ -->
+  <div class="screen" id="s3">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s2')">← Kembali</button>
+      <div class="dots">
+        <div class="dot done"></div><div class="dot done"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+      <span class="step-badge">Hampir!</span>
+    </div>
+    <div class="card q-card">
+      <p class="q-label">Pilih Mode</p>
+      <p class="q-text">Lanjut milih<br>atau random aja?</p>
+      <p class="q-hint">~ pilih dengan bijak ya 🤔 ~</p>
+    </div>
+    <div class="cgrid">
+      <div class="cc" onclick="pick('mode','lanjut','s4')">
+        <div class="cc-img p-mint">🎯</div>
+        <div class="cc-label">Lanjut<br>Pilih</div>
+      </div>
+      <div class="cc" onclick="pick('mode','random','result')">
+        <div class="cc-img p-lavender">🎲</div>
+        <div class="cc-label">Random<br>Aja!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ STEP 4 · PEDAS / TIDAK PEDAS ════════════════ -->
+  <div class="screen" id="s4">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s3')">← Kembali</button>
+      <div class="dots">
+        <div class="dot done"></div><div class="dot done"></div>
+        <div class="dot on"></div><div class="dot"></div>
+      </div>
+      <span class="step-badge">3 / 4</span>
+    </div>
+    <div class="card q-card">
+      <p class="q-label">Pertanyaan 3</p>
+      <p class="q-text">Tahan pedas<br>nggak?</p>
+    </div>
+    <div class="cgrid">
+      <div class="cc" onclick="pick('rasa','pedas','s5')">
+        <div class="cc-img p-rose">🌶️</div>
+        <div class="cc-label">Pedas<br>Dong!</div>
+      </div>
+      <div class="cc" onclick="pick('rasa','tidak-pedas','s5')">
+        <div class="cc-img p-sage">😊</div>
+        <div class="cc-label">Nggak<br>Pedas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ STEP 5 · GURIH / MANIS ════════════════ -->
+  <div class="screen" id="s5">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s4')">← Kembali</button>
+      <div class="dots">
+        <div class="dot done"></div><div class="dot done"></div>
+        <div class="dot done"></div><div class="dot on"></div>
+      </div>
+      <span class="step-badge">4 / 4</span>
+    </div>
+    <div class="card q-card">
+      <p class="q-label">Pertanyaan 4</p>
+      <p class="q-text">Pengen yang<br>gurih atau manis?</p>
+      <p class="q-hint">~ tentukan seleramu! 😋 ~</p>
+    </div>
+    <div class="cgrid">
+      <div class="cc" onclick="pick('taste','gurih','result')">
+        <div class="cc-img p-salt">🧂</div>
+        <div class="cc-label">Gurih<br>Dong!</div>
+      </div>
+      <div class="cc" onclick="pick('taste','manis','result')">
+        <div class="cc-img p-honey">🍯</div>
+        <div class="cc-label">Manis<br>Aja!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ RESULT ════════════════ -->
+  <div class="screen" id="s-result">
+    <div class="step-top">
+      <button class="back-link" onclick="restart()">← Mulai Ulang</button>
+      <span class="step-badge">🎉 Ini dia!</span>
+    </div>
+    <div class="card result-card">
+      <div class="result-top">
+        <span class="result-emoji" id="r-emoji">🍛</span>
+        <span class="result-chip" id="r-chip">Rekomendasi</span>
+      </div>
+      <div class="result-body">
+        <p class="result-id"   id="r-id">#kategori</p>
+        <p class="result-name" id="r-name">Nama Makanan</p>
+        <p class="result-desc" id="r-desc">Deskripsi</p>
+        <div class="stat-row"  id="r-stats"></div>
+        <div class="result-actions">
+          <button class="dice-btn" onclick="reroll()">
+            <span class="di" id="dice">🎲</span>
+            Coba Yang Lain
+          </button>
+          <button class="heart-btn" id="btn-heart" onclick="saveFavorite()" style="display:none">
+            ❤️ &nbsp;Simpan ke Favorit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ AUTH ════════════════ -->
+  <div class="screen" id="s-auth">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s-intro')">← Kembali</button>
+      <span class="step-badge">Akun</span>
+    </div>
+    <div class="card" style="padding:28px 24px">
+      <div class="auth-tabs">
+        <button id="tab-masuk"  class="auth-tab active" onclick="switchAuthTab('masuk')">Masuk</button>
+        <button id="tab-daftar" class="auth-tab"        onclick="switchAuthTab('daftar')">Daftar</button>
+      </div>
+      <p id="auth-error" class="auth-error"></p>
+      <input type="email"    id="auth-email" class="auth-input" placeholder="Alamat Email" autocomplete="email" />
+      <input type="password" id="auth-pass"  class="auth-input" placeholder="Password (min. 6 karakter)" autocomplete="current-password" />
+      <button class="btn btn-dark" id="auth-submit" onclick="submitAuth()">Masuk</button>
+    </div>
+  </div>
+
+  <!-- ════════════════ FAVORITES ════════════════ -->
+  <div class="screen" id="s-favorites">
+    <div class="step-top">
+      <button class="back-link" onclick="go('s-intro')">← Kembali</button>
+      <span class="step-badge">❤️ Favorit Saya</span>
+    </div>
+    <div class="fav-list" id="fav-list"></div>
+  </div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ── Supabase config — isi setelah buat project di supabase.com ─
+const SUPABASE_URL      = ''; // TODO: Project URL dari Settings > API
+const SUPABASE_ANON_KEY = ''; // TODO: anon public key dari Settings > API
+
+// ── auth state ─────────────────────────────────────────────────
+let supabase      = null;
+let currentUser   = null;
+let currentAuthTab = 'masuk';
+let userFavCats   = new Set();
+
+// ── food database — 16 kategori (8 gurih + 8 manis) ───────────
+const DB = {
+  /* ─── GURIH ─── */
+  'nasi-berkuah-pedas-gurih': [
+    {e:'🥘',n:'Rawon',d:'Sup hitam legendaris khas Jawa Timur yang kaya rempah dan rasa'},
+    {e:'🍲',n:'Soto Lamongan Pedas',d:'Soto ayam kuning dengan bumbu pedas yang menggigit lidah'},
+    {e:'🫕',n:'Gulai Kambing',d:'Kari kambing kental berkuah santan hangat berbumbu rempah'},
+    {e:'🍛',n:'Tongseng Sapi Pedas',d:'Daging sapi berkuah santan dengan cabai rawit berlimpah'},
+    {e:'🥣',n:'Coto Makassar',d:'Sup jeroan kaya rempah khas Makassar yang legendaris'},
+    {e:'🌶️',n:'Sup Daging Pedas',d:'Sup daging sapi berkuah bening dengan cabe rawit merah'},
+  ],
+  'nasi-berkuah-tidak-pedas-gurih': [
+    {e:'🍲',n:'Soto Ayam',d:'Soto ayam kuning nan gurih yang selalu bikin rindu rumah'},
+    {e:'🥣',n:'Sup Buntut',d:'Sup ekor sapi empuk dengan kaldu bening yang sangat kaya'},
+    {e:'🍛',n:'Soto Betawi',d:'Soto santan khas Betawi yang creamy, gurih, dan menggiurkan'},
+    {e:'🥘',n:'Opor Ayam',d:'Ayam berkuah santan lembut nan harum dengan daun salam'},
+    {e:'🍜',n:'Soto Kudus',d:'Soto khas Kudus dengan kerbau muda yang empuk dan gurih'},
+    {e:'🦴',n:'Sup Iga Sapi',d:'Sup iga sapi dengan kaldu bening hangat yang menyegarkan'},
+  ],
+  'nasi-non-kuah-pedas-gurih': [
+    {e:'🍳',n:'Nasi Goreng Spesial',d:'Nasi goreng cabai merah dengan telur mata sapi yang sempurna'},
+    {e:'🍱',n:'Nasi Padang',d:'Nasi + rendang + sambal hijau pedas — kombo yang tidak tertandingi'},
+    {e:'🌴',n:'Nasi Campur Bali',d:'Nasi campur bumbu Bali yang super pedas dan sangat meriah'},
+    {e:'💥',n:'Nasi Ayam Geprek',d:'Ayam crispy dihancurkan bersama sambal brutal level dewa'},
+    {e:'🔥',n:'Nasi Bakar Sambal',d:'Nasi dibungkus daun pisang dibakar dengan sambal yang dahsyat'},
+    {e:'🌶️',n:'Nasi Lemak Pedas',d:'Nasi santan wangi dengan sambal udang pedas yang menggoda'},
+  ],
+  'nasi-non-kuah-tidak-pedas-gurih': [
+    {e:'🍚',n:'Nasi Uduk',d:'Nasi santan gurih dengan lauk lengkap yang bikin kenyang dan bahagia'},
+    {e:'🌟',n:'Nasi Kuning',d:'Nasi kuning harum dengan lauk pelengkap yang berlimpah dan lezat'},
+    {e:'🥗',n:'Nasi Pecel',d:'Nasi + sayuran segar disiram saus kacang gurih manis yang khas'},
+    {e:'🍳',n:'Nasi Goreng Biasa',d:'Nasi goreng klasik yang tidak pernah mengecewakan siapapun'},
+    {e:'🌿',n:'Nasi Lemak',d:'Nasi santan daun pandan yang harum, gurih, dan menyenangkan'},
+    {e:'🍗',n:'Nasi Tim Ayam',d:'Nasi lembut dengan ayam kukus gurih dan jahe yang hangat'},
+  ],
+  'non-nasi-berkuah-pedas-gurih': [
+    {e:'🔥',n:'Mie Aceh',d:'Mie khas Aceh dengan bumbu pedas yang benar-benar tidak ada ampunnya'},
+    {e:'🌶️',n:'Tom Yam',d:'Sup asam pedas Thailand yang segar dan sangat menggugah selera'},
+    {e:'🥘',n:'Laksa Pedas',d:'Mie kuah santan pedas khas Melayu yang kaya rempah'},
+    {e:'💀',n:'Mie Pedas Level Max',d:'Tantanganmu hari ini: level pedas yang tidak ada obatnya'},
+    {e:'🍡',n:'Baso Aci Kuah Pedas',d:'Baso aci kenyal dengan kuah pedas asam yang segar dan unik'},
+    {e:'🍜',n:'Mie Cakalang Pedas',d:'Mie dengan ikan cakalang dan bumbu pedas khas Manado'},
+  ],
+  'non-nasi-berkuah-tidak-pedas-gurih': [
+    {e:'🍡',n:'Bakso Sapi',d:'Bakso sapi kenyal dengan kuah kaldu yang segar, gurih, dan panas'},
+    {e:'🍜',n:'Mie Ayam',d:'Mie dengan topping ayam cincang gurih yang selalu memuaskan'},
+    {e:'🫕',n:'Ramen',d:'Mie Jepang dengan kuah umami yang dalam dan sangat menghangatkan'},
+    {e:'🍲',n:'Pho',d:'Sup mie Vietnam yang hangat, harum, dan menenangkan jiwa'},
+    {e:'🥣',n:'Soto Mie Bogor',d:'Soto dengan mie dan risol khas Bogor yang istimewa'},
+    {e:'🦵',n:'Mie Kocok Bandung',d:'Mie dengan kikil sapi dan kuah kaldu segar khas Bandung'},
+  ],
+  'non-nasi-non-kuah-pedas-gurih': [
+    {e:'🍝',n:'Mie Goreng Pedas',d:'Mie goreng dengan cabai berlimpah yang bikin keringatan'},
+    {e:'🔥',n:'Kwetiau Pedas',d:'Kwetiau goreng dengan bumbu pedas yang menggila dan nagih'},
+    {e:'🥜',n:'Gado-Gado Pedas',d:'Sayur + bumbu kacang pedas yang benar-benar bikin nagih'},
+    {e:'🌶️',n:'Bihun Goreng Pedas',d:'Bihun goreng dengan sambal merah menyala yang membakar'},
+    {e:'♨️',n:'Mie Goreng Jawa Pedas',d:'Mie goreng kecap dengan cabai rawit utuh ala Jawa'},
+    {e:'💥',n:'Kwetiau Siram Pedas',d:'Kwetiau disiram saus pedas yang menggiurkan dan meriah'},
+  ],
+  'non-nasi-non-kuah-tidak-pedas-gurih': [
+    {e:'🍝',n:'Mie Goreng',d:'Mie goreng klasik yang selalu juara dan tidak pernah gagal'},
+    {e:'🥗',n:'Gado-Gado',d:'Sayuran segar + saus kacang manis gurih yang menyehatkan'},
+    {e:'🥜',n:'Ketoprak',d:'Tahu + bihun + saus kacang khas Jakarta yang ringan dan enak'},
+    {e:'🍲',n:'Kwetiau Goreng',d:'Kwetiau goreng dengan tauge segar dan kecap manis pilihan'},
+    {e:'🍜',n:'Bihun Goreng',d:'Bihun goreng sayuran yang ringan, lezat, dan sangat memuaskan'},
+    {e:'☕',n:'Mie Goreng Jawa',d:'Mie goreng kecap manis khas Jawa yang sederhana tapi enak banget'},
+  ],
+
+  /* ─── MANIS ─── */
+  'nasi-berkuah-pedas-manis': [
+    {e:'🍲',n:'Tongseng Kecap Pedas',d:'Daging sapi berkuah kecap manis dengan irisan cabai yang menggoda'},
+    {e:'🫕',n:'Kari Manis Pedas',d:'Kari ayam ala Melayu santan manis dengan rempah dan cabai'},
+    {e:'🥘',n:'Gulai Nangka Pedas Manis',d:'Gulai nangka muda dengan bumbu pedas manis yang meresap sempurna'},
+    {e:'🍛',n:'Garang Asem Pedas',d:'Ayam berkuah asam-pedas-manis daun belimbing yang sangat segar'},
+    {e:'🌶️',n:'Rendang Basah Pedas Manis',d:'Rendang semi-berkuah kental manis-pedas khas Padang yang kaya'},
+    {e:'🔥',n:'Soto Kambing Pedas Manis',d:'Soto kambing dengan kecap manis dan cabai rawit yang bikin nagih'},
+  ],
+  'nasi-berkuah-tidak-pedas-manis': [
+    {e:'🌿',n:'Sayur Lodeh',d:'Sayur berkuah santan gurih-manis yang hangat dan selalu bikin rindu rumah'},
+    {e:'🥘',n:'Opor Manis',d:'Ayam opor santan dengan sentuhan kecap manis yang creamy dan lembut'},
+    {e:'🍛',n:'Kalio Ayam',d:'Kari ayam kering berkuah kental manis dengan rempah yang harum'},
+    {e:'🍲',n:'Sup Manis Wortel',d:'Sup daging dengan wortel dan jagung yang sedikit manis dan menyegarkan'},
+    {e:'🥣',n:'Gulai Sayur Manis',d:'Sayuran berkuah santan kuning dengan bumbu rempah yang ringan manis'},
+    {e:'🍜',n:'Soto Lontong Manis',d:'Soto berkuah dengan lontong, kecap manis, dan kerupuk yang renyah'},
+  ],
+  'nasi-non-kuah-pedas-manis': [
+    {e:'🍳',n:'Nasi Goreng Kecap Pedas',d:'Nasi goreng dengan kecap manis dan sambal yang bikin keringatan'},
+    {e:'🍱',n:'Rendang Manis Pedas',d:'Rendang daging dengan sentuhan kecap manis yang lebih bercita rasa'},
+    {e:'💥',n:'Ayam Geprek Kecap',d:'Ayam crispy dengan sambal kecap manis pedas yang berbeda level'},
+    {e:'🔥',n:'Nasi Bakar Pedas Manis',d:'Nasi dibungkus daun pisang dengan bumbu kecap pedas yang dahsyat'},
+    {e:'🌶️',n:'Sambal Goreng Kecap',d:'Sayur + tempe dalam sambal kecap manis pedas yang bikin nagih'},
+    {e:'🌴',n:'Nasi Goreng Merah Manis',d:'Nasi goreng bumbu merah dengan kecap manis dan cabai rawit'},
+  ],
+  'nasi-non-kuah-tidak-pedas-manis': [
+    {e:'🌟',n:'Gudeg',d:'Nangka muda manis khas Yogyakarta yang legendaris dan selalu bikin kangen'},
+    {e:'🍳',n:'Nasi Goreng Kecap Manis',d:'Nasi goreng kecap manis klasik dengan telur yang selalu diandalkan'},
+    {e:'🍚',n:'Lontong Sayur Manis',d:'Lontong dengan kuah sayur manis gurih yang bikin kenyang dan senang'},
+    {e:'🌿',n:'Nasi Kuning Manis',d:'Nasi kuning harum dengan lauk manis seperti orak-arik dan tempe'},
+    {e:'🍗',n:'Ayam Kecap Manis',d:'Ayam masak kecap manis dengan bawang karamelisasi yang harum'},
+    {e:'🥗',n:'Nasi Jagung Manis',d:'Nasi jagung dengan lauk tempe manis dan sayur sederhana yang lezat'},
+  ],
+  'non-nasi-berkuah-pedas-manis': [
+    {e:'🌶️',n:'Tom Kha Pedas Manis',d:'Sup santan Thailand dengan serai, galangal, pedas-manis nan segar'},
+    {e:'🥘',n:'Laksa Manis Pedas',d:'Mie kuah santan manis-pedas dengan rempah khas Melayu yang kaya'},
+    {e:'🍜',n:'Mie Pedas Kecap',d:'Mie kuah dengan kecap manis dan cabai yang unik dan nagih banget'},
+    {e:'🍡',n:'Bakso Kuah Kecap Pedas',d:'Bakso kenyal dalam kuah kecap manis pedas yang hangat dan unik'},
+    {e:'🔥',n:'Soto Mie Manis Pedas',d:'Soto mie dengan kecap manis dan sambal yang berbeda dari biasanya'},
+    {e:'🫕',n:'Kare Pedas Manis',d:'Kare mie dengan santan manis dan cabai yang menggugah selera'},
+  ],
+  'non-nasi-berkuah-tidak-pedas-manis': [
+    {e:'🍮',n:'Kolak',d:'Pisang dan labu berkuah santan manis gula merah yang hangat dan memanjakan'},
+    {e:'🧇',n:'Es Dawet',d:'Cendol hijau kenyal dalam kuah santan manis gula merah yang sangat segar'},
+    {e:'🥛',n:'Bubur Sumsum',d:'Bubur tepung beras lembut dengan kuah kinca gula merah yang manis'},
+    {e:'🌿',n:'Cendol',d:'Es cendol segar dengan santan dan gula merah yang selalu melegakan'},
+    {e:'🫘',n:'Bubur Kacang Hijau',d:'Kacang hijau lembut berkuah santan manis yang hangat dan menyehatkan'},
+    {e:'🍵',n:'Wedang Ronde',d:'Bola ketan isi kacang dalam air jahe manis yang menghangatkan badan'},
+  ],
+  'non-nasi-non-kuah-pedas-manis': [
+    {e:'🥟',n:'Cireng Sambel Kecap',d:'Cireng kenyal dengan cocolan sambal kecap manis yang adiktif'},
+    {e:'🍌',n:'Pisang Goreng Pedas Manis',d:'Pisang goreng crispy dengan bumbu pedas manis yang unik dan nagih'},
+    {e:'🥜',n:'Batagor Sambel Kecap',d:'Batagor tahu dengan sambal kacang manis dan kecap khas Bandung'},
+    {e:'🌶️',n:'Tahu Bulat Sambel Kecap',d:'Tahu bulat crispy dengan sambel kecap manis pedas yang nagih banget'},
+    {e:'🔥',n:'Seblak Kering Manis Pedas',d:'Seblak kering pedas manis dengan kerupuk dan topping yang beragam'},
+    {e:'🍡',n:'Cilok Sambel Kecap',d:'Cilok kenyal dengan sambel kacang manis-pedas yang harganya friendly'},
+  ],
+  'non-nasi-non-kuah-tidak-pedas-manis': [
+    {e:'🧇',n:'Martabak Manis',d:'Martabak tebal lembut dengan aneka topping manis yang paling kece'},
+    {e:'🟢',n:'Kue Putu',d:'Kue putu kukus isi gula merah dalam bambu dengan parutan kelapa segar'},
+    {e:'🟡',n:'Onde-Onde',d:'Bola wijen goreng isi kacang hijau manis yang renyah luar lembut dalam'},
+    {e:'🥞',n:'Pancake Pandan',d:'Pancake hijau pandan fluffy dengan siraman madu dan buah segar'},
+    {e:'🍌',n:'Pisang Goreng',d:'Pisang goreng crispy klasik yang tidak pernah salah dan selalu enak'},
+    {e:'🌀',n:'Serabi Manis',d:'Kue serabi gurih-manis dengan topping kinca yang harum daun pandan'},
+  ],
+};
+
+// ── app state ──────────────────────────────────────────────────
+const st = { base: null, kuah: null, mode: null, rasa: null, taste: null };
+let pool = [], idx = 0;
+
+// ── navigation ─────────────────────────────────────────────────
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── pick choice and advance ────────────────────────────────────
+async function pick(key, val, next) {
+  st[key] = val;
+  if (next === 'result') await showResult();
+  else go(next);
+}
+
+// ── build pool with _cat tag on each food ──────────────────────
+function buildPool() {
+  if (st.mode === 'random') {
+    st.rasa  = 'random';
+    st.taste = 'random';
+    return ['pedas-gurih','pedas-manis','tidak-pedas-gurih','tidak-pedas-manis']
+      .flatMap(c => {
+        const key = `${st.base}-${st.kuah}-${c}`;
+        return (DB[key] || []).map(f => ({ ...f, _cat: key }));
+      });
+  }
+  const key = `${st.base}-${st.kuah}-${st.rasa}-${st.taste}`;
+  return (DB[key] || []).map(f => ({ ...f, _cat: key }));
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── show result screen (async — fetches fav categories) ────────
+async function showResult() {
+  pool = shuffle(buildPool());
+  userFavCats = new Set();
+
+  if (currentUser && supabase) {
+    try {
+      const { data } = await supabase
+        .from('favorites').select('category').eq('user_id', currentUser.id);
+      if (data?.length) {
+        data.forEach(f => userFavCats.add(f.category));
+        if (st.mode === 'random') {
+          // put foods from favorited categories first
+          pool.sort((a, b) =>
+            (userFavCats.has(a._cat) ? 0 : 1) - (userFavCats.has(b._cat) ? 0 : 1)
+          );
+        }
+      }
+    } catch { /* silently ignore */ }
+  }
+
+  idx = 0;
+  render(pool[0]);
+  confetti(64);
+  go('s-result');
+}
+
+// ── render one food ────────────────────────────────────────────
+function render(f) {
+  document.getElementById('r-emoji').textContent = f.e;
+  document.getElementById('r-name').textContent  = f.n;
+  document.getElementById('r-desc').textContent  = f.d;
+
+  // Result chip — show fav badge if category is favorited
+  const chip = document.getElementById('r-chip');
+  if (chip) chip.textContent = userFavCats.has(f._cat) ? '⭐ Favorit kamu!' : 'Rekomendasi';
+
+  // Category label
+  const parts = [st.base, st.kuah];
+  if (st.rasa  !== 'random') parts.push(st.rasa);
+  if (st.taste !== 'random') parts.push(st.taste);
+  document.getElementById('r-id').textContent = '#' + parts.join(' · ');
+
+  // 2×2 stat boxes
+  const row = document.getElementById('r-stats');
+  row.innerHTML = '';
+  [
+    { v: st.base  === 'nasi'        ? '🍚 Nasi'     : '🍜 Non-Nasi',   k: 'Basis'  },
+    { v: st.kuah  === 'berkuah'     ? '🥣 Berkuah'  : '🍳 Non-Kuah',   k: 'Kuah'   },
+    { v: st.rasa  === 'pedas'       ? '🌶️ Pedas'    :
+       st.rasa    === 'tidak-pedas' ? '😊 Mild'      : '🎲 Acak',       k: 'Pedas'  },
+    { v: st.taste === 'gurih'       ? '🧂 Gurih'     :
+       st.taste   === 'manis'       ? '🍯 Manis'     : '🎲 Acak',       k: 'Rasa'   },
+  ].forEach(it => {
+    const b = document.createElement('div');
+    b.className = 'stat-box';
+    b.innerHTML = `<div class="stat-val">${it.v}</div><div class="stat-key">${it.k}</div>`;
+    row.appendChild(b);
+  });
+
+  // Heart button visibility
+  const heart = document.getElementById('btn-heart');
+  if (heart) heart.style.display = currentUser ? '' : 'none';
+}
+
+// ── re-roll ────────────────────────────────────────────────────
+function reroll() {
+  const d = document.getElementById('dice');
+  d.classList.remove('roll');
+  void d.offsetWidth;
+  d.classList.add('roll');
+  idx = (idx + 1) % pool.length;
+  render(pool[idx]);
+  confetti(28);
+}
+
+// ── restart ────────────────────────────────────────────────────
+function restart() {
+  Object.assign(st, { base: null, kuah: null, mode: null, rasa: null, taste: null });
+  pool = []; idx = 0;
+  go('s-intro');
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+
+function updateAuthUI() {
+  const loggedIn   = !!currentUser;
+  const signin     = document.getElementById('btn-signin');
+  const signout    = document.getElementById('btn-signout');
+  const favBar     = document.getElementById('fav-bar');
+  const authLabel  = document.getElementById('auth-label');
+  const heart      = document.getElementById('btn-heart');
+
+  if (signin)    signin.style.display  = loggedIn ? 'none' : '';
+  if (signout)   signout.style.display = loggedIn ? ''     : 'none';
+  if (favBar)    favBar.style.display  = loggedIn ? ''     : 'none';
+  if (heart)     heart.style.display   = loggedIn ? ''     : 'none';
+  if (authLabel) {
+    authLabel.textContent  = currentUser?.email?.split('@')[0] || '';
+    authLabel.style.display = loggedIn ? '' : 'none';
+  }
+}
+
+function switchAuthTab(tab) {
+  currentAuthTab = tab;
+  document.getElementById('tab-masuk') .classList.toggle('active', tab === 'masuk');
+  document.getElementById('tab-daftar').classList.toggle('active', tab === 'daftar');
+  document.getElementById('auth-submit').textContent = tab === 'masuk' ? 'Masuk' : 'Daftar';
+  const err = document.getElementById('auth-error');
+  if (err) err.style.display = 'none';
+}
+
+async function submitAuth() {
+  if (!supabase) { showToast('Supabase belum dikonfigurasi.'); return; }
+  const email   = document.getElementById('auth-email').value.trim();
+  const pass    = document.getElementById('auth-pass').value;
+  const errEl   = document.getElementById('auth-error');
+  const submitBtn = document.getElementById('auth-submit');
+
+  errEl.style.display = 'none';
+  if (!email || !pass) {
+    errEl.textContent   = 'Email dan password wajib diisi.';
+    errEl.style.display = '';
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Loading...';
+
+  try {
+    if (currentAuthTab === 'masuk') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (error) throw error;
+      go('s-intro');
+      showToast('Selamat datang! 👋');
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password: pass });
+      if (error) throw error;
+      showToast('Akun dibuat! Silakan masuk sekarang. 🎉');
+      switchAuthTab('masuk');
+    }
+  } catch (err) {
+    errEl.textContent   = err.message || 'Terjadi kesalahan, coba lagi.';
+    errEl.style.display = '';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = currentAuthTab === 'masuk' ? 'Masuk' : 'Daftar';
+  }
+}
+
+async function logout() {
+  if (supabase) await supabase.auth.signOut();
+  currentUser = null;
+  userFavCats = new Set();
+  updateAuthUI();
+  showToast('Berhasil keluar. Sampai jumpa! 👋');
+}
+
+// ══════════════════════════════════════════
+// FAVORITES
+// ══════════════════════════════════════════
+
+async function saveFavorite() {
+  if (!currentUser || !supabase) return;
+  const f   = pool[idx];
+  const btn = document.getElementById('btn-heart');
+  if (btn) btn.disabled = true;
+
+  const { error } = await supabase.from('favorites').upsert({
+    user_id:    currentUser.id,
+    food_name:  f.n,
+    food_emoji: f.e,
+    food_desc:  f.d,
+    category:   f._cat,
+  }, { onConflict: 'user_id,food_name' });
+
+  if (btn) btn.disabled = false;
+
+  if (!error) {
+    userFavCats.add(f._cat);
+    const chip = document.getElementById('r-chip');
+    if (chip) chip.textContent = '⭐ Favorit kamu!';
+  }
+  showToast(error ? 'Gagal menyimpan 😢' : 'Disimpan ke favorit! ❤️');
+}
+
+async function showFavoritesScreen() {
+  if (!currentUser || !supabase) { go('s-intro'); return; }
+  go('s-favorites');
+  const listEl = document.getElementById('fav-list');
+  listEl.innerHTML = '<p class="fav-empty">Memuat...</p>';
+
+  const { data, error } = await supabase
+    .from('favorites').select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    listEl.innerHTML = '<p class="fav-empty" style="color:#FF4444">Gagal memuat favorit :(</p>';
+    return;
+  }
+  if (data.length === 0) {
+    listEl.innerHTML = '<p class="fav-empty">Belum ada favorit.<br>Simpan makanan dari layar hasil rekomendasi!</p>';
+    return;
+  }
+  listEl.innerHTML = data.map(fav => `
+    <div class="fav-card">
+      <span class="fav-emoji">${fav.food_emoji || '🍽️'}</span>
+      <div class="fav-info">
+        <div class="fav-name">${fav.food_name}</div>
+        <div class="fav-desc">${fav.food_desc || ''}</div>
+        <div class="fav-cat">#${fav.category}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── toast ──────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ── confetti ───────────────────────────────────────────────────
+function confetti(n) {
+  const cols = ['#C8FF00','#FF6BB5','#4FC3F7','#FFB74D','#CE93D8','#80DEEA','#A5D6A7','#FFCC02'];
+  for (let i = 0; i < n; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'conf';
+      const sz = 6 + Math.floor(Math.random() * 3) * 2;
+      el.style.cssText =
+        `left:${Math.random()*100}vw;top:-12px;` +
+        `width:${sz}px;height:${sz}px;` +
+        `background:${cols[Math.floor(Math.random()*cols.length)]};` +
+        `animation-duration:${1.8+Math.random()*2.2}s;`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }, i * 38);
+  }
+}
+
+// ── init Supabase ──────────────────────────────────────────────
+async function initSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: { session } } = await supabase.auth.getSession();
+  currentUser = session?.user ?? null;
+  updateAuthUI();
+  supabase.auth.onAuthStateChange((_event, session) => {
+    currentUser = session?.user ?? null;
+    updateAuthUI();
+  });
+}
+
+// ── expose functions to HTML onclick attributes ────────────────
+window.go                  = go;
+window.pick                = pick;
+window.reroll              = reroll;
+window.restart             = restart;
+window.logout              = logout;
+window.submitAuth          = submitAuth;
+window.switchAuthTab       = switchAuthTab;
+window.saveFavorite        = saveFavorite;
+window.showFavoritesScreen = showFavoritesScreen;
+
+// ── spawn floating bg pixels ────────────────────────────────────
+(function () {
+  const cols = ['#C8FF00','#FF00C8','#00E5FF','#39FF14','#FF7700'];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.style.cssText =
+      `position:fixed;pointer-events:none;opacity:.1;` +
+      `left:${Math.random()*100}vw;` +
+      `width:${[6,8,10,12][Math.floor(Math.random()*4)]}px;` +
+      `height:${[6,8,10,12][Math.floor(Math.random()*4)]}px;` +
+      `background:${cols[Math.floor(Math.random()*cols.length)]};` +
+      `animation:bpUp ${14+Math.random()*22}s ${-Math.random()*24}s linear infinite;`;
+    document.body.appendChild(el);
+  }
+  const style = document.createElement('style');
+  style.textContent = `@keyframes bpUp{from{transform:translateY(110vh) rotate(0);opacity:0}8%{opacity:.1}92%{opacity:.1}to{transform:translateY(-10vh) rotate(360deg);opacity:0}}`;
+  document.head.appendChild(style);
+})();
+
+// ── boot ────────────────────────────────────────────────────────
+initSupabase();
+</script>
+</body>
+</html>
