@@ -1,0 +1,11 @@
+.git
+.github
+.assetsignore
+.DS_Store
+wrangler.jsonc
+CNAME
+CLAUDE.md
+README.md
+claude_notes
+_claude_notes
+WhatsApp*
